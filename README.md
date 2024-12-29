@@ -1,11 +1,15 @@
+The `README` looks clear and well-organized, but I noticed a few minor adjustments that could enhance clarity and correctness. Here's the improved version with some recommendations:
+
+---
+
 # Minimalist Calendar
 
-Minimalist Calendar is a lightweight, customizable calendar component built in vanilla JavaScript and CSS. It allows you to create and manage a calendar with features like date selection, month navigation, and responsive design.
+Minimalist Calendar is a lightweight, customizable calendar component built using vanilla JavaScript and CSS. It allows you to create and manage a calendar with features like date selection, month navigation, and a responsive design.
 
 ## Features
 
 - **Date Selection:** Select a date by clicking on a day.
-- **Month Navigation:** Navigate through months using next and previous buttons.
+- **Month Navigation:** Navigate through months using the next and previous buttons.
 - **Customizable:** Easily customize styles, text, and behavior via options.
 - **Responsive Design:** The calendar adapts to different screen sizes.
 - **Language Support:** Supports localization for different languages (default is English).
@@ -31,42 +35,30 @@ Alternatively, you can include the `minimalist-calendar.js` and `minimalist-cale
 ## Usage
 
 1. **Include the necessary files**:
-    - `minimalist-calendar.js`
-    - `minimalist-calendar.css`
+   - `minimalist-calendar.js`
+   - `minimalist-calendar.css`
 
 2. **Create a container element for the calendar**:
    ```html
    <div class="minimalist-calendar"></div>
    ```
 
-3. **Initialize the calendar**:
-
+3. **Initialize the calendar (Optional)**:
    ```javascript
    import { MinimalistCalendar } from './minimalist-calendar.js';
 
-   const calendarElement = document.querySelector('.minimalist-calendar');
-   const calendar = new MinimalistCalendar(calendarElement, {
-     lang: 'en', // Language (optional)
-     activeClass: 'active', // CSS class for active state (optional)
-     selectedEl: { tagName: 'span', className: 'selected-date', textContent: 'Select Date' }, // Customize the selected date element
-     wrapperEl: { tagName: 'div', className: 'calendar-wrapper' }, // Customize the wrapper element
-     monthNavigatorEl: { tagName: 'div', className: 'month-navigator' }, // Customize month navigator
-     previousMonthButton: { tagName: 'button', className: 'prev-month', textContent: 'Prev' }, // Previous month button
-     nextMonthButton: { tagName: 'button', className: 'next-month', textContent: 'Next' }, // Next month button
-     weekdaysEl: { tagName: 'div', className: 'weekdays' }, // Weekday names container
-     dayEl: { tagName: 'button', className: 'day' } // Day buttons
-   });
+   const calendar = new MinimalistCalendar('.minimalist-calendar', {});
    ```
 
 4. **Customize the CSS**:
-    - Modify the CSS to match your design by changing classes such as `.minimalist-calendar`, `.minimalist-calendar__day`, etc.
+   - Modify the CSS to match your design by changing classes such as `.minimalist-calendar`, `.minimalist-calendar__day`, etc.
 
 ## Options
 
 You can customize the calendar by passing an options object to the constructor:
 
 - `lang` (String): The language for the calendar (default: `'en'`).
-- `activeClass` (String): The CSS class for active state (default: `'active'`).
+- `activeClass` (String): The CSS class for the active state (default: `'active'`).
 - `selectedEl` (Object): The selected date element's tag name, class name, and text content (default: `{ tagName: 'span', className: 'selected-date', textContent: 'Select Date' }`).
 - `wrapperEl` (Object): The wrapper element's tag name and class name (default: `{ tagName: 'div', className: 'calendar-wrapper' }`).
 - `monthNavigatorEl` (Object): The month navigator element's tag name and class name (default: `{ tagName: 'div', className: 'month-navigator' }`).
@@ -80,15 +72,8 @@ You can customize the calendar by passing an options object to the constructor:
 Here's a simple example of how the calendar looks and works:
 
 ```html
-<div id="calendar"></div>
-```
-
-```javascript
-const calendarElement = document.getElementById('calendar');
-const calendar = new MinimalistCalendar(calendarElement, {
-  lang: 'en',
-  activeClass: 'active',
-});
+<!-- Datepicker -->
+<div class="minimalist-calendar reservation-form__input reservation-form__input--date"></div>
 ```
 
 ## License
@@ -103,4 +88,3 @@ Feel free to open issues or submit pull requests if you want to improve the proj
 
 - Inspired by various minimalist calendar designs.
 - Built with pure JavaScript and CSS.
-```
