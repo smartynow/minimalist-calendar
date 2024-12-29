@@ -7,3 +7,5 @@ const calendarEls = document.querySelectorAll(calendarSelector);
 calendarEls.forEach((calendarEl) => {
     new MinimalistCalendar(calendarEl);
 });
+
+export { MinimalistCalendar } from "./calendar.js";
