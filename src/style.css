@@ -1,3 +1,4 @@
+/*base styles*/
 .minimalist-calendar {
   position: relative;
   width: 100%;
@@ -5,6 +6,7 @@
 
 .minimalist-calendar__selected {
   cursor: pointer;
+  color: var(--color-text, #000);
 }
 
 .minimalist-calendar__wrapper {
@@ -17,7 +19,7 @@
   left: 0;
   z-index: 5;
   background: var(--color-bg-primary, white);
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-text, #000);
 }
 
 .minimalist-calendar--show .minimalist-calendar__wrapper {
@@ -34,12 +36,28 @@
   gap: 8px;
 }
 
-.minimalist-calendar__weekdays {
+.minimalist-calendar__next-month,
+.minimalist-calendar__prev-month {
+  border: none;
+  background: transparent;
+  cursor: pointer;
 
+  color: var(--color-text, #000);
+}
+
+.minimalist-calendar__current-month {
+  color: var(--color-text, #000);
+}
+
+.minimalist-calendar__weekdays {
+  padding-left: 0;
 }
 
 .minimalist-calendar__weekday {
-  text-transform: capitalize
+  text-transform: capitalize;
+  list-style: none;
+
+  color: var(--color-text, #000);
 }
 
 .minimalist-calendar__weekdays,
@@ -50,7 +68,11 @@
   text-align: center;
 }
 
-.minimalist-calendar__days li {
+.minimalist-calendar__day {
+  border: none;
+  background: transparent;
+  color: var(--color-text, #000);
+
   cursor: pointer;
   aspect-ratio: 1;
 
@@ -66,4 +88,14 @@
 .minimalist-calendar__day--empty:hover {
   background: none;
   cursor: default;
+}
+/* end of base styles */
+/* theme styles */
+.minimalist-calendar--theme-green {
+  --color-primary: #C09342;
+  --color-bg-primary: #102b2a;
+  --color-bg-secondary: #091D1C;
+  --color-title: #FFFFFF;
+  --color-title-accent: var(--color-primary);
+  --color-text: #FFFFFF;
 }

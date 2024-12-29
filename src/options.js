@@ -42,11 +42,11 @@ const defaultOptions = {
         className: `${defaultClass}__weekday`,
     },
     daysEl: {
-        tagName: "ul",
+        tagName: "div",
         className: `${defaultClass}__days`,
     },
     dayEl: {
-        tagName: "li",
+        tagName: "button",
         className: `${defaultClass}__day`,
     }
 };
