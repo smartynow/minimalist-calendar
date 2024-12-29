@@ -2,27 +2,40 @@ import {WeekManager} from './weekManager.js';
 import {defaultOptions} from "./options.js";
 
 export class MinimalistCalendar {
-  constructor(element, options = {}) {
-    if (!(element instanceof HTMLElement)) {
-      throw new Error("Invalid argument: element must be an HTMLElement.");
-    }
+  constructor(selector, options = {}) {
+    this.datepickerEls = document.querySelectorAll(selector);
     this.options = { ...defaultOptions, ...options };
-    this.weekManager = new WeekManager();
-    this.currentDate = new Date();
-    this.datepickerEl = element;
-    this.selectedEl = this.createElement(this.datepickerEl,this.options.selectedEl);
-    this.wrapperEl = this.createElement(this.datepickerEl,this.options.wrapperEl);
-    this.monthNavigatorEl = this.createElement(this.wrapperEl, this.options.monthNavigatorEl);
-    this.previousMonthButton = this.createElement(this.monthNavigatorEl, this.options.previousMonthButton);
-    this.currentMonthEl = this.createElement(this.monthNavigatorEl, this.options.currentMonthEl);
-    this.nextMonthButton = this.createElement(this.monthNavigatorEl, this.options.nextMonthButton);
-    this.weekdaysEl = this.createElement(this.wrapperEl, this.options.weekdaysEl);
-    this.daysEl = this.createElement(this.wrapperEl, this.options.daysEl);
-    this.hiddenInput = this.createHiddenInput();
+    this.instances = new Map();
 
-    this.dayClickHandler = (event) => this.handleDayClick(event);
+    this.datepickerEls.forEach((datepickerEl) => {
+      if (!(datepickerEl instanceof HTMLElement)) {
+        throw new Error("Invalid argument: element must be an HTMLElement.");
+      }
 
-    this.init();
+      const instance = {
+        datepickerEl,
+        weekManager: new WeekManager(),
+        currentDate: new Date(),
+        selectedEl: this.createElement(datepickerEl, this.options.selectedEl),
+        wrapperEl: this.createElement(datepickerEl, this.options.wrapperEl),
+      };
+
+      instance.monthNavigatorEl = this.createElement(instance.wrapperEl, this.options.monthNavigatorEl);
+      instance.previousMonthButton = this.createElement(instance.monthNavigatorEl, this.options.previousMonthButton);
+      instance.currentMonthEl = this.createElement(instance.monthNavigatorEl, this.options.currentMonthEl);
+      instance.nextMonthButton = this.createElement(instance.monthNavigatorEl, this.options.nextMonthButton);
+      instance.weekdaysEl = this.createElement(instance.wrapperEl, this.options.weekdaysEl);
+      instance.daysEl = this.createElement(instance.wrapperEl, this.options.daysEl);
+      instance.hiddenInput = this.createHiddenInput(instance.datepickerEl);
+
+      // Bind event handlers to the specific instance
+      instance.dayClickHandler = (event) => this.handleDayClick(event, instance);
+      instance.toggleDatepicker = () => this.toggleDatepicker(instance);
+      instance.closeDatepicker = () => this.closeDatepicker(instance);
+
+      this.instances.set(datepickerEl, instance);
+      this.initInstance(instance);
+    });
   }
 
   createElement(parent, options) {
@@ -47,7 +60,7 @@ export class MinimalistCalendar {
     return element;
   }
 
-  createHiddenInput(parent = this.datepickerEl, inputName = this.options.inputName) {
+  createHiddenInput(parent, inputName = this.options.inputName) {
     if (!parent) {
       throw new Error('Input container not found.');
     }
@@ -63,46 +76,66 @@ export class MinimalistCalendar {
     return hiddenInput;
   }
 
-  toggleDatepicker() {
-    if (this.datepickerEl) {
-      this.datepickerEl.classList.toggle(this.options.activeClass);
+  closeAllExcept(exceptInstance) {
+    this.instances.forEach((instance) => {
+      if (instance !== exceptInstance) {
+        this.closeDatepicker(instance);
+      }
+    });
+  }
 
-      if (this.datepickerEl.classList.contains(this.options.activeClass)) {
-        this.daysEl.addEventListener('click', this.dayClickHandler);
+  toggleDatepicker(instance) {
+    if (instance.datepickerEl) {
+      const isOpening = !instance.datepickerEl.classList.contains(this.options.activeClass);
+
+      if (isOpening) {
+        this.closeAllExcept(instance);
+        this.openInstance = instance;
       } else {
-        this.daysEl.removeEventListener('click', this.dayClickHandler);
+        this.openInstance = null;
+      }
+
+      instance.datepickerEl.classList.toggle(this.options.activeClass);
+
+      if (instance.datepickerEl.classList.contains(this.options.activeClass)) {
+        instance.daysEl.addEventListener('click', instance.dayClickHandler);
+      } else {
+        instance.daysEl.removeEventListener('click', instance.dayClickHandler);
       }
     } else {
       throw new Error('Datepicker element not found.');
     }
   }
 
-  closeDatepicker() {
-    if (this.datepickerEl) {
-      this.datepickerEl.classList.remove(this.options.activeClass);
-      this.daysEl.removeEventListener('click', this.dayClickHandler);
+  closeDatepicker(instance) {
+    if (instance.datepickerEl) {
+      instance.datepickerEl.classList.remove(this.options.activeClass);
+      instance.daysEl.removeEventListener('click', instance.dayClickHandler);
+      if (this.openInstance === instance) {
+        this.openInstance = null;
+      }
     } else {
       throw new Error('Datepicker element not found.');
     }
   }
 
-  setMonth(parent = this.currentMonthEl) {
-    if (!parent) {
+  setMonth(instance) {
+    if (!instance.currentMonthEl) {
       throw new Error('Month element not found.');
     }
 
     const lang = this.options.lang;
 
-    parent.textContent = this.currentDate.toLocaleString(lang, {
+    instance.currentMonthEl.textContent = instance.currentDate.toLocaleString(lang, {
       month: 'long',
       year: 'numeric'
     });
   }
 
-  setWeekdays(parent = this.weekdaysEl, options = this.options.weekdayEl) {
-    const {tagName, className} = options;
+  setWeekdays(instance) {
+    const {tagName, className} = this.options.weekdayEl;
 
-    if (!parent) {
+    if (!instance.weekdaysEl) {
       throw new Error('Weekdays element not found.');
     }
 
@@ -110,10 +143,10 @@ export class MinimalistCalendar {
       throw new Error('Weekday class not found.');
     }
 
-    parent.innerHTML = '';
+    instance.weekdaysEl.innerHTML = '';
 
-    this.weekManager.weekdaysList.forEach((day) => {
-      this.createElement(parent, {
+    instance.weekManager.weekdaysList.forEach((day) => {
+      this.createElement(instance.weekdaysEl, {
         tagName,
         className,
         textContent: day,
@@ -121,28 +154,28 @@ export class MinimalistCalendar {
     });
   }
 
-  setDays(parent = this.daysEl, options = this.options.dayEl) {
-    const {tagName, className} = options;
+  setDays(instance) {
+    const {tagName, className} = this.options.dayEl;
 
-    parent.innerHTML = '';
+    instance.daysEl.innerHTML = '';
 
-    const year = this.currentDate.getFullYear();
-    const month = this.currentDate.getMonth();
+    const year = instance.currentDate.getFullYear();
+    const month = instance.currentDate.getMonth();
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-    const startWeekDayIndex = this.weekManager.originalWeekdaysList.indexOf(this.weekManager.startWeekOn);
+    const startWeekDayIndex = instance.weekManager.originalWeekdaysList.indexOf(instance.weekManager.startWeekOn);
     const firstDayIndex = (firstDay - startWeekDayIndex + 7) % 7;
 
     for (let i = 0; i < firstDayIndex; i++) {
       const emptyDay = document.createElement(tagName);
       emptyDay.className = `${className} ${className}--empty`;
-      parent.appendChild(emptyDay);
+      instance.daysEl.appendChild(emptyDay);
     }
 
     for (let i = 1; i <= daysInMonth; i++) {
-      this.createElement(parent, {
+      this.createElement(instance.daysEl, {
         tagName,
         className,
         textContent: i,
@@ -150,7 +183,7 @@ export class MinimalistCalendar {
     }
   }
 
-  handleDayClick(event) {
+  handleDayClick(event, instance) {
     const {className} = this.options.dayEl;
     const emptyClass = `${className}--empty`;
     const target = event.target;
@@ -158,18 +191,17 @@ export class MinimalistCalendar {
     if (target.classList.contains(className) && !target.classList.contains(emptyClass)) {
       const day = parseInt(target.textContent);
       if (!isNaN(day)) {
-        this.selectDate(day);
+        this.selectDate(day, instance);
       }
-      this.selectDate(day);
     }
   }
 
-  selectDate(day) {
+  selectDate(day, instance) {
     const lang = this.options.lang;
     const selectedDate = new Date(
-        this.currentDate.getFullYear(),
-        this.currentDate.getMonth(),
-        day
+      instance.currentDate.getFullYear(),
+      instance.currentDate.getMonth(),
+      day
     );
 
     const formattedDate = selectedDate.toLocaleDateString(lang, {
@@ -179,21 +211,21 @@ export class MinimalistCalendar {
     });
     const isoDate = selectedDate.toISOString().split('T')[0];
 
-    this.selectedEl.textContent = formattedDate;
-    this.hiddenInput.value = isoDate;
+    instance.selectedEl.textContent = formattedDate;
+    instance.hiddenInput.value = isoDate;
 
-    this.closeDatepicker();
+    this.closeDatepicker(instance);
   }
 
-  renderCalendar() {
-    this.setMonth();
-    this.setWeekdays();
-    this.setDays();
+  renderCalendar(instance) {
+    this.setMonth(instance);
+    this.setWeekdays(instance);
+    this.setDays(instance);
   }
 
-  changeMonth(offset) {
-    let newMonth = this.currentDate.getMonth() + offset;
-    let newYear = this.currentDate.getFullYear();
+  changeMonth(offset, instance) {
+    let newMonth = instance.currentDate.getMonth() + offset;
+    let newYear = instance.currentDate.getFullYear();
     if (newMonth < 0) {
       newMonth = 11;
       newYear--;
@@ -201,49 +233,51 @@ export class MinimalistCalendar {
       newMonth = 0;
       newYear++;
     }
-    this.currentDate = new Date(newYear, newMonth, 1);
-    this.renderCalendar();
+    instance.currentDate = new Date(newYear, newMonth, 1);
+    this.renderCalendar(instance);
   }
 
-
-  setupNavigationEvents() {
-    if (!this.previousMonthButton || !this.nextMonthButton) {
+  setupNavigationEvents(instance) {
+    if (!instance.previousMonthButton || !instance.nextMonthButton) {
       throw new Error("Navigation buttons are not initialized");
     }
 
-    this.previousMonthButton.addEventListener('click', (e) => {
+    instance.previousMonthButton.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      this.changeMonth(-1);
+      this.changeMonth(-1, instance);
     });
 
-    this.nextMonthButton.addEventListener('click', (e) => {
+    instance.nextMonthButton.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      this.changeMonth(1);
+      this.changeMonth(1, instance);
     });
   }
 
-  setupOutsideClickHandler() {
+  setupOutsideClickHandler(instance) {
     document.addEventListener('click', (e) => {
-      if (!this.datepickerEl.contains(e.target) &&
-          !this.wrapperEl.contains(e.target)) {
-        this.closeDatepicker();
+      const isOutsideAllDatepickers = Array.from(this.instances.values()).every(inst =>
+        !inst.datepickerEl.contains(e.target) && !inst.wrapperEl.contains(e.target)
+      );
+
+      if (isOutsideAllDatepickers) {
+        this.closeAllExcept(null); // Закрываем все датапикеры
       }
     });
   }
 
-  init() {
-    this.renderCalendar();
 
-    this.selectedEl.addEventListener('click', (e) => {
+  initInstance(instance) {
+    this.renderCalendar(instance);
+
+    instance.selectedEl.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      this.toggleDatepicker();
+      instance.toggleDatepicker();
     });
 
-    this.setupNavigationEvents();
-
-    this.setupOutsideClickHandler();
+    this.setupNavigationEvents(instance);
+    this.setupOutsideClickHandler(instance);
   }
 }
