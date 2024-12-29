@@ -9,10 +9,7 @@ export class MinimalistCalendar {
     this.options = { ...defaultOptions, ...options };
     this.weekManager = new WeekManager();
     this.currentDate = new Date();
-    this.datepickerEl = document.querySelector(selector);
-    if (!this.datepickerEl) {
-      throw new Error(`Element with selector "${selector}" not found.`);
-    }
+    this.datepickerEl = element;
     this.selectedEl = this.createElement(this.datepickerEl,this.options.selectedEl);
     this.wrapperEl = this.createElement(this.datepickerEl,this.options.wrapperEl);
     this.monthNavigatorEl = this.createElement(this.wrapperEl, this.options.monthNavigatorEl);
