@@ -55,6 +55,10 @@ export class MinimalistCalendar {
     textContent && (element.textContent = textContent);
     idName && (element.id = idName);
 
+    if (tagName === 'button') {
+      element.setAttribute('type', 'button');
+    }
+
     parent.appendChild(element);
 
     return element;
